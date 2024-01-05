@@ -25,32 +25,31 @@ for story,question,answer in all_data:
 vocab.add('yes')
 vocab.add('no')
 
-tokenizer = Tokenizer(filters='!"#$%&()*+-/:;<=>@[\\]^_`{|}~')
+tokenizer = Tokenizer(filters=[])
 tokenizer.fit_on_texts(vocab)
+# print(tokenizer.word_index)
 maxlen_stories = 156
 maxlen_question = 6
 
-def vectorize_stories(data, word_index=tokenizer.word_index, max_story_len=maxlen_stories,max_question_len=maxlen_question):
-  
-    # X = STORIES
+def vectorize_stories(data, max_story_len=maxlen_stories, max_question_len=maxlen_question):
     X = []
-    # Xq = QUERY/QUESTION
     Xq = []
-    # Y = CORRECT ANSWER
-    Y = []
+    
+    for story, query in data:
+        # Tokenize and  stories to sequences
+        x = tokenizer.texts_to_sequences([story])[0]
+        xq = tokenizer.texts_to_sequences([query])[0]
 
-    for story, query, answer in data:
+        # Pad sequences
+        x = pad_sequences([x], maxlen=max_story_len)[0]
+        xq = pad_sequences([xq], maxlen=max_question_len)[0]
 
-        x = [word_index[word.lower()] for word in story]
-        xq = [word_index[word.lower()] for word in query]
         X.append(x)
         Xq.append(xq)
-        if answer.lower() == 'yes':
-            Y.append([1, 0]) 
-        else:
-            Y.append([0, 1])  
 
-    return (pad_sequences(X, maxlen=max_story_len),pad_sequences(Xq, maxlen=max_question_len), np.array(Y))
+    return np.array(X), np.array(Xq)
+
+
 
 @app.route('/')
 def index():
@@ -63,19 +62,22 @@ def predict():
         user_story = user_story.split()
         user_question = request.form['question']
         user_question = user_question.split()
-  
-        processed_data = [(user_story,user_question,'yes')]
-        s,q,_ = vectorize_stories(processed_data)
 
-        prediction = model.predict(([ s, q]))
-        
+        processed_data = [(user_story, user_question)]
+        s, q = vectorize_stories(processed_data)
+
+        prediction = model.predict([s, q])
+        print(s,q)
+
         val_max = np.argmax(prediction[0])
         for key, val in tokenizer.word_index.items():
             if val == val_max:
-                predicted_answer = key
-                probability = prediction[0][val_max]
+                k = key
+        probability = prediction[0][val_max]
 
-        return render_template('result.html', prediction=predicted_answer,probability=probability)  
+        return render_template('result.html', prediction=k, probability=probability)
+
+  
 
 if __name__ == '__main__':
     app.run(debug=False)
