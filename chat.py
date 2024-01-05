@@ -36,6 +36,8 @@ vocab.add('yes')
 vocab.add('no')
 vocab
 
+
+pd.DataFrame(vocab).T
 vocab_len = len(vocab) + 1
 
 # for i in range(len(all_data)):
@@ -51,7 +53,7 @@ maxlen_stories
 maxlen_question = max(question_len)
 maxlen_question
 
-tokenizer = Tokenizer(filters = [])
+tokenizer = Tokenizer(filters = '!"#$%&()*+-/:;<=>@[\\]^_`{|}~')
 
 tokenizer.fit_on_texts(vocab)
 
@@ -67,7 +69,7 @@ train_answer_text = []
 for s,q,a in train_data:
   train_story_text.append(s)
   train_question_text.append(q)
-  train_answer_text.append(q)
+  train_answer_text.append(a)
 
 # train_story_text
 
