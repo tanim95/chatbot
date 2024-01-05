@@ -3,14 +3,63 @@
   <head>
     <meta charset="UTF-8" />
     <title>Question Answering App</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      form {
+        position: relative;
+        width: auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+      }
+
+      h1 {
+        position: absolute;
+        top: 20px;
+        text-align: center;
+      }
+
+      label,
+      input,
+      textarea {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      input[type='submit'] {
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      input[type='submit']:hover {
+        background-color: #0056b3;
+      }
+    </style>
   </head>
   <body>
-    <h1>chater 1.0</h1>
+    <h1>Chatter 1.0</h1>
     <form action="/predict" method="post">
-      <label for="story">Story:</label><br />
-      <textarea id="story" name="story" rows="4" cols="50"></textarea><br />
-      <label for="question">Question:</label><br />
-      <input type="text" id="question" name="question" /><br /><br />
+      <label for="story">Story:</label>
+      <textarea id="story" name="story" rows="4" cols="50"></textarea>
+      <label for="question">Question:</label>
+      <input type="text" id="question" name="question" />
       <input type="submit" value="Submit" />
     </form>
   </body>

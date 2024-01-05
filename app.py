@@ -6,14 +6,15 @@ from keras.preprocessing.text import Tokenizer
 import pickle
 
 
+with open('data/train_qa.txt','rb') as f:
+  train_data = pickle.load(f)
+
+with open('data/test_qa.txt','rb') as f:
+  test_data = pickle.load(f)
+
 app = Flask(__name__)
 model = load_model('chatbot.h5')
 
-with open('data\train_qa.txt','rb') as f:
-  train_data = pickle.load(f)
-
-with open('data\test_qa.txt','rb') as f:
-  test_data = pickle.load(f)
 
 all_data  = train_data + test_data
 
@@ -21,6 +22,8 @@ vocab = set()
 for story,question,answer in all_data:
   vocab = vocab.union(set(story))
   vocab = vocab.union(set(question))
+vocab.add('yes')
+vocab.add('no')
 
 tokenizer = Tokenizer(filters='!"#$%&()*+-/:;<=>@[\\]^_`{|}~')
 tokenizer.fit_on_texts(vocab)
@@ -38,15 +41,14 @@ def vectorize_stories(data, word_index=tokenizer.word_index, max_story_len=maxle
 
     for story, query, answer in data:
 
-        # Grab the word index for every word in story
         x = [word_index[word.lower()] for word in story]
         xq = [word_index[word.lower()] for word in query]
-        y = np.zeros(len(word_index) + 1)
-        y[word_index[answer]] = 1
-
         X.append(x)
         Xq.append(xq)
-        Y.append(y)
+        if answer.lower() == 'yes':
+            Y.append([1, 0]) 
+        else:
+            Y.append([0, 1])  
 
     return (pad_sequences(X, maxlen=max_story_len),pad_sequences(Xq, maxlen=max_question_len), np.array(Y))
 
@@ -61,19 +63,19 @@ def predict():
         user_story = user_story.split()
         user_question = request.form['question']
         user_question = user_question.split()
-        
+  
         processed_data = [(user_story,user_question,'yes')]
         s,q,_ = vectorize_stories(processed_data)
 
         prediction = model.predict(([ s, q]))
         
-        # Determine answer based on prediction
         val_max = np.argmax(prediction[0])
         for key, val in tokenizer.word_index.items():
             if val == val_max:
                 predicted_answer = key
+                probability = prediction[0][val_max]
 
-        return render_template('result.html', prediction=predicted_answer)  
+        return render_template('result.html', prediction=predicted_answer,probability=probability)  
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
